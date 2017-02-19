@@ -1,4 +1,6 @@
-In this android application, I implemented an in air gesture recognizer, which allows a user to create a template for each gesture by drawing the gesture using the phone in the air and then performs a real-time recognition. 
+#In-air real-time user-defined hand gesture recognizer
+
+I present you an in-air real-time user-defined gesture recognizer, which allows a user to create a template for each gesture by drawing the gesture using the phone in the air and then performs a real-time recognition. 
 
 This android application has been tested on Android 4.x and Android 6.0 systems. The testing devices being used are Samsung Galaxy Nexus, LG G3.  
 
@@ -15,6 +17,6 @@ Now this code project is currently for my students in the CSC428/CSC2514 class a
 
 If you want to use the code for your own project, please contact Mingming Fan at fmmbupt@gmail.com to get the permission.
 
-Thank you.
+Thank you and enjoy it.
 
 Mingming Fan
