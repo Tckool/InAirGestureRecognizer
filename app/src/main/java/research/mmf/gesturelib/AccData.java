@@ -43,4 +43,8 @@ public class AccData
     public void setZ(float z) {
         this.z = z;
     }
+
+    public String asString() {
+        return x + " " + y + " " + z;
+    }
 }
