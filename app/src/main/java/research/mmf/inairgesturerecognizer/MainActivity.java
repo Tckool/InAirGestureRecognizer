@@ -1,7 +1,6 @@
 package research.mmf.inairgesturerecognizer;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -50,8 +49,8 @@ public class MainActivity extends Activity {
     private Boolean StoreSensorData = false;
     private ArrayAdapter arrayAdapter;
 
-    private SharedPreferences sharedPreferences = getSharedPreferences("preferences", 0);
-    private SharedPreferences.Editor editor = sharedPreferences.edit();
+//    private SharedPreferences sharedPreferences = getSharedPreferences("preferences", 0);
+//    private SharedPreferences.Editor editor = sharedPreferences.edit();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,13 +64,33 @@ public class MainActivity extends Activity {
         bt_start_recognition.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                View textView = findViewById(R.id.textView);
+                View textView3 = findViewById(R.id.textView3);
+                TextView title = (TextView)findViewById(R.id.Title);
+                View divider = findViewById(R.id.Divider);
+                View gestureList = findViewById(R.id.gesture_list);
+
                 if(recording_sample_gestures)
                 {
-                    bt_start_recognition.setText("Click to enter new templates");
+                    bt_start_recognition.setText("Click to recognize gestures");
+                    title.setText("Identify Gestures");
+                    textView.setVisibility(View.INVISIBLE);
+                    textView3.setVisibility(View.INVISIBLE);
+                    divider.setVisibility(View.INVISIBLE);
+                    gestureList.setVisibility(View.INVISIBLE);
+                    textView_gesture_name.setVisibility(View.INVISIBLE);
+
                 }
                 else
                 {
-                    bt_start_recognition.setText("Click to recognize gestures");
+                    bt_start_recognition.setText("Click to enter new templates");
+                    title.setText("Enter Gestures");
+                    textView.setVisibility(View.VISIBLE);
+                    textView3.setVisibility(View.VISIBLE);
+                    divider.setVisibility(View.VISIBLE);
+                    gestureList.setVisibility(View.VISIBLE);
+                    textView_gesture_name.setVisibility(View.VISIBLE);
                 }
                 recording_sample_gestures = !recording_sample_gestures;
             }
@@ -85,40 +104,40 @@ public class MainActivity extends Activity {
 
         Recognizer = new DTWGestureRecognition();
 
-        System.out.println(sharedPreferences.getStringSet("gestures", null));
-        System.out.println(sharedPreferences.getStringSet("template_1", null));
+//        System.out.println(sharedPreferences.getStringSet("gestures", null));
+//        System.out.println(sharedPreferences.getStringSet("template_1", null));
 
         final ListView listview = (ListView) findViewById(R.id.gesture_list);
         arrayAdapter = new ArrayAdapter(this, R.layout.list_item, R.id.label, gesture_names);
         listview.setAdapter(arrayAdapter);
     }
 
-    public void saveGestures() {
-        try {
-            // Remove everything in SharedPreferences
-            editor.clear();
-
-            Set<String> gestures_set = new HashSet<String>();
-            gestures_set.addAll(gesture_names);
-            editor.putStringSet("gestures", gestures_set);
-
-            int counter = 0;
-            for (ArrayList<AccData> template: templates) {
-                System.out.println(template);
-                Set<String> template_set = new HashSet<String>();
-
-                for (AccData accdata: template) {
-                    template_set.add(accdata.asString());
-                }
-                editor.putStringSet("template_" + counter, template_set);
-                counter++;
-            }
-
-            editor.commit();
-        } catch(Exception e) {
-            throw e;
-        }
-    }
+//    public void saveGestures() {
+//        try {
+//            // Remove everything in SharedPreferences
+//            editor.clear();
+//
+//            Set<String> gestures_set = new HashSet<String>();
+//            gestures_set.addAll(gesture_names);
+//            editor.putStringSet("gestures", gestures_set);
+//
+//            int counter = 0;
+//            for (ArrayList<AccData> template: templates) {
+//                System.out.println(template);
+//                Set<String> template_set = new HashSet<String>();
+//
+//                for (AccData accdata: template) {
+//                    template_set.add(accdata.asString());
+//                }
+//                editor.putStringSet("template_" + counter, template_set);
+//                counter++;
+//            }
+//
+//            editor.commit();
+//        } catch(Exception e) {
+//            throw e;
+//        }
+//    }
 
     private SensorEventListener acc_listener = new SensorEventListener()
     {
@@ -171,7 +190,7 @@ public class MainActivity extends Activity {
                     String gesture = textView_gesture_name.getText().toString();
                     gesture_names.add(gesture);
                     gesture_id++;
-                    Toast.makeText(getApplicationContext(),"Entered the " + gesture+ " template.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Entered gesture template for " + gesture, Toast.LENGTH_SHORT).show();
                     System.out.println("action up");
                     System.out.println(templates.size());
                     arrayAdapter.notifyDataSetChanged();
@@ -192,7 +211,7 @@ public class MainActivity extends Activity {
                     StoreSensorData = false;
                     int WhichGesture = Recognizer.GestureRecognition(new ArrayList<ArrayList<AccData>>(templates), SensorData);
                     String gestureRecognized = gesture_names.get(WhichGesture);
-                    Toast.makeText(getApplicationContext(),"It is " + gestureRecognized, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"It is " + gestureRecognized, Toast.LENGTH_SHORT).show();
                     SensorData.clear();
                     return false;
                 default:
