@@ -44,7 +44,7 @@ public class AccData
         this.z = z;
     }
 
-    public String asString() {
+    public String toString() {
         return x + " " + y + " " + z;
     }
 }
