@@ -1,11 +1,14 @@
 package research.mmf.inairgesturerecognizer;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -23,12 +26,15 @@ import com.google.gson.reflect.TypeToken;
 import org.json.JSONArray;
 
 import java.lang.reflect.Array;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import research.mmf.gesturelib.*;
 
@@ -38,12 +44,13 @@ import research.mmf.gesturelib.*;
  * Contact: fmmbupt@gmail.com
  * Contact the author for use of the code
  * */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements View.OnClickListener {
 
     private TextView textView_gesture_name;
     private Button bt_start_recognition;
     private Button save_gestures;
     private Button clear_gestures;
+    private Button startButton;
 
     private Boolean recording_sample_gestures = true;
 
@@ -60,6 +67,13 @@ public class MainActivity extends Activity {
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
+    private AlertDialog alertDialog;
+    private int counter;
+    private final String[] apps = {"Facebook", "Maps", "Youtube"};
+    private long startTime;
+    private String target = "";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +83,7 @@ public class MainActivity extends Activity {
         bt_start_recognition = (Button)findViewById(R.id.button_record_gesture);
         save_gestures = (Button)findViewById(R.id.save_gestures);
         clear_gestures = (Button)findViewById(R.id.clear_gestures);
+        startButton = (Button)findViewById(R.id.start_button);
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -84,6 +99,8 @@ public class MainActivity extends Activity {
         final ListView listview = (ListView) findViewById(R.id.gesture_list);
         arrayAdapter = new ArrayAdapter(this, R.layout.list_item, R.id.label, gesture_names);
         listview.setAdapter(arrayAdapter);
+
+        alertDialog = new AlertDialog.Builder(MainActivity.this).create();
     }
 
     /**
@@ -140,7 +157,6 @@ public class MainActivity extends Activity {
 
     public boolean onTouchEvent(MotionEvent event)
     {
-        System.out.println("on touch event");
         if(recording_sample_gestures)
         {
             //record the data for templates
@@ -149,8 +165,6 @@ public class MainActivity extends Activity {
                 case MotionEvent.ACTION_DOWN:
                     StoreSensorData = true;
                     templates.add(new ArrayList<AccData>());
-                    System.out.println("action down");
-                    System.out.println(templates.size());
                     return false;
                 case MotionEvent.ACTION_UP:
                     StoreSensorData = false;
@@ -158,8 +172,6 @@ public class MainActivity extends Activity {
                     gesture_names.add(gesture);
                     gesture_id++;
                     Toast.makeText(getApplicationContext(), "Entered gesture template for " + gesture, Toast.LENGTH_SHORT).show();
-                    System.out.println("action up");
-                    System.out.println(templates.size());
                     arrayAdapter.notifyDataSetChanged();
                     return false;
                 default:
@@ -178,8 +190,14 @@ public class MainActivity extends Activity {
                     StoreSensorData = false;
                     int WhichGesture = Recognizer.GestureRecognition(new ArrayList<ArrayList<AccData>>(templates), SensorData);
                     String gestureRecognized = gesture_names.get(WhichGesture);
+
                     Toast.makeText(getApplicationContext(),"It is " + gestureRecognized, Toast.LENGTH_SHORT).show();
                     SensorData.clear();
+
+                    if (gestureRecognized.equals(target)) {
+                        foundApp(target);
+                    }
+
                     return false;
                 default:
                     break;
@@ -214,6 +232,7 @@ public class MainActivity extends Activity {
                     save_gestures.setVisibility(View.INVISIBLE);
                     clear_gestures.setVisibility(View.INVISIBLE);
                     textView_gesture_name.setVisibility(View.INVISIBLE);
+                    startButton.setVisibility(View.VISIBLE);
 
                 }
                 else
@@ -227,6 +246,8 @@ public class MainActivity extends Activity {
                     save_gestures.setVisibility(View.VISIBLE);
                     clear_gestures.setVisibility(View.VISIBLE);
                     textView_gesture_name.setVisibility(View.VISIBLE);
+                    startButton.setVisibility(View.INVISIBLE);
+
                 }
                 recording_sample_gestures = !recording_sample_gestures;
             }
@@ -268,6 +289,64 @@ public class MainActivity extends Activity {
                 }
             }
         });
+
+        startButton.setOnClickListener(this);
+    }
+
+
+    private void startTrial(final String target) {
+        // delay
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Do something after 100ms
+                findNext(target);
+            }
+        }, 2000);
+    }
+
+    private void showMessage(String message) {
+        alertDialog.setMessage(message);
+        alertDialog.show();
+    }
+
+    private void findNext(final String app) {
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        target = app;
+                        dialog.dismiss();
+                        startTime = System.currentTimeMillis();
+                    }
+                });
+        alertDialog.setMessage("Please perform the gesture to open " + app + " once you close this message");
+        alertDialog.show();
+    }
+
+    private void foundApp(String target) {
+        long stopTime = System.currentTimeMillis() - startTime;
+        counter++;
+        if (counter >= apps.length) {
+            showMessage("Opened " + target + " in " + stopTime + " seconds.\n Experiment completed.");
+            return;
+        }
+        showMessage("Opened " + target + " in " + stopTime + " seconds.");
+        startTrial(apps[counter]);
+    }
+
+    @Override
+    public void onClick(View view) {
+        counter = 0;
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        startTrial(apps[counter]);
+                    }
+                });
+        alertDialog.setMessage("In Air Gestures Experiment will begin after you close this popup.");
+        alertDialog.show();
     }
 
 }
