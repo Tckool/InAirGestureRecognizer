@@ -52,7 +52,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private Button clear_gestures;
     private Button startButton;
 
-    private Boolean recording_sample_gestures = true;
+    private Boolean recording_sample_gestures = false;
 
     private SensorManager mSensorManager;
     private DTWGestureRecognition Recognizer;
@@ -303,7 +303,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 //Do something after 100ms
                 findNext(target);
             }
-        }, 2000);
+        }, 10000);
     }
 
     private void showMessage(String message) {
