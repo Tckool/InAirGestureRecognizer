@@ -29,15 +29,6 @@
         android:id="@+id/Title"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:textStyle="normal|bold"/>
-    <TextView
-        android:text="Touch one finger anywhere  blank below; move the phone in space, release the finger once done. "
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/editText_gesture_name"
-        android:id="@+id/textView3"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:visibility="invisible" />
 
     <Button
         android:text="Click to enter new templates"
@@ -61,17 +52,6 @@
         android:layout_alignBottom="@+id/textView"
         android:layout_toRightOf="@+id/textView"
         android:layout_toEndOf="@+id/textView"
-        android:visibility="invisible" />
-
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_below="@+id/textView3"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp"
-        android:layout_height="95dp"
-        style="@style/Widget.AppCompat.ListView"
-        android:id="@+id/gesture_list"
         android:visibility="invisible" />
 
     <View
@@ -114,6 +94,30 @@
         android:layout_alignTop="@+id/editText_gesture_name"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="95dp"
+        style="@style/Widget.AppCompat.ListView"
+        android:id="@+id/gesture_list"
+        android:visibility="invisible"
+        android:layout_below="@+id/start_button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:text="Display Data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/showData"
+        android:layout_above="@+id/button_record_gesture"
+        android:layout_toRightOf="@+id/Title"
+        android:layout_toEndOf="@+id/Title"
+        android:layout_marginLeft="9dp"
+        android:layout_marginStart="9dp"
+        android:layout_marginBottom="14dp"
+        android:visibility="invisible"
+        android:onClick="showData"/>
 
 
 </RelativeLayout>

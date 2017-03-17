@@ -2,6 +2,7 @@ package research.mmf.inairgesturerecognizer;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -9,11 +10,10 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -23,19 +23,13 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-
-import java.lang.reflect.Array;
-import java.sql.Time;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import research.mmf.gesturelib.*;
 
 /***
@@ -51,6 +45,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private Button save_gestures;
     private Button clear_gestures;
     private Button startButton;
+    private Button dataButton;
 
     private Boolean recording_sample_gestures = false;
 
@@ -72,10 +67,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private final String[] apps = {"Facebook", "Maps", "Youtube"};
     private long startTime;
     private String target = "";
+    private String times;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -84,6 +81,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         save_gestures = (Button)findViewById(R.id.save_gestures);
         clear_gestures = (Button)findViewById(R.id.clear_gestures);
         startButton = (Button)findViewById(R.id.start_button);
+        dataButton = (Button)findViewById(R.id.showData);
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -216,7 +214,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             public void onClick(View view) {
 
                 View textView = findViewById(R.id.textView);
-                View textView3 = findViewById(R.id.textView3);
                 TextView title = (TextView)findViewById(R.id.Title);
                 View divider = findViewById(R.id.Divider);
                 View gestureList = findViewById(R.id.gesture_list);
@@ -226,12 +223,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     bt_start_recognition.setText("Click to recognize gestures");
                     title.setText("Identify Gestures");
                     textView.setVisibility(View.INVISIBLE);
-                    textView3.setVisibility(View.INVISIBLE);
                     divider.setVisibility(View.INVISIBLE);
                     gestureList.setVisibility(View.INVISIBLE);
                     save_gestures.setVisibility(View.INVISIBLE);
                     clear_gestures.setVisibility(View.INVISIBLE);
                     textView_gesture_name.setVisibility(View.INVISIBLE);
+                    dataButton.setVisibility(View.INVISIBLE);
                     startButton.setVisibility(View.VISIBLE);
 
                 }
@@ -240,12 +237,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     bt_start_recognition.setText("Click to enter new templates");
                     title.setText("Enter Gestures");
                     textView.setVisibility(View.VISIBLE);
-                    textView3.setVisibility(View.VISIBLE);
                     divider.setVisibility(View.VISIBLE);
                     gestureList.setVisibility(View.VISIBLE);
                     save_gestures.setVisibility(View.VISIBLE);
                     clear_gestures.setVisibility(View.VISIBLE);
                     textView_gesture_name.setVisibility(View.VISIBLE);
+                    dataButton.setVisibility(View.VISIBLE);
                     startButton.setVisibility(View.INVISIBLE);
 
                 }
@@ -291,6 +288,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         });
 
         startButton.setOnClickListener(this);
+
+//        dataButton.setOnClickListener();
     }
 
 
@@ -303,7 +302,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 //Do something after 100ms
                 findNext(target);
             }
-        }, 10000);
+        }, 5000);
     }
 
     private void showMessage(String message) {
@@ -327,17 +326,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private void foundApp(String target) {
         long stopTime = System.currentTimeMillis() - startTime;
         counter++;
+        times += stopTime + " ";
         if (counter >= apps.length) {
-            showMessage("Opened " + target + " in " + stopTime + " seconds.\n Experiment completed.");
+            showMessage("Experiment completed.");
+            System.out.println(times);
+            saveData(times + ":");
+            System.out.println(readData());
             return;
         }
-        showMessage("Opened " + target + " in " + stopTime + " seconds.");
+        showMessage("Opened " + target);
+        target = "";
         startTrial(apps[counter]);
     }
 
     @Override
     public void onClick(View view) {
         counter = 0;
+        times = "";
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -347,6 +352,52 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 });
         alertDialog.setMessage("In Air Gestures Experiment will begin after you close this popup.");
         alertDialog.show();
+    }
+
+    private void saveData(String data) {
+        //        From http://stackoverflow.com/questions/3572463/what-is-context-on-android
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput("data.txt", MODE_APPEND));
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+    }
+
+    private String readData() {
+        String ret = "";
+        try {
+            InputStream inputStream = openFileInput("data.txt");
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append(receiveString);
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
+            }
+        }
+        catch (FileNotFoundException e) {
+            Log.e("Exception", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("Exception", "Can not read file: " + e.toString());
+        }
+
+        return ret;
+    }
+
+    public void showData(View view) {
+        Intent intent = new Intent(this, DataActivity.class);
+        intent.putExtra("data", readData());
+        startActivity(intent);
     }
 
 }
