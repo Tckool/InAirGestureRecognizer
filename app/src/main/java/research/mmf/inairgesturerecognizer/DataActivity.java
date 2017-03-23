@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class    DataActivity extends AppCompatActivity {
+public class DataActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,9 +16,7 @@ public class    DataActivity extends AppCompatActivity {
         // Get the Intent that started this activity and extract the string
         Intent intent = getIntent();
         String data = intent.getStringExtra("data");
-        String[] dataArray = data.split(":");
-        System.out.println(data);
-        System.out.println(dataArray);
+        String[] dataArray = data.split("&&");
         final ListView listview = (ListView) findViewById(R.id.data_list);
         ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, dataArray);
         listview.setAdapter(arrayAdapter);
